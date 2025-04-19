@@ -105,15 +105,15 @@ spawn(function()
     scanConn:Disconnect()
 
     -- Минимальное время выполнения
-    if tick() - startTime < 90 then
-        task.wait(90 - (tick() - startTime))
+    if tick() - startTime < 60 then
+        task.wait(60 - (tick() - startTime))
     end
 
     -- Внешний скрипт
     pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/castletpfast.github.io/main/FASTCASTLE.lua"))()
     end)
-    task.wait(5)
+    task.wait(2)
 
     -- Сбор бондов
     local collectStart = tick()
