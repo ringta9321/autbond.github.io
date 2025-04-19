@@ -14,7 +14,7 @@ local processedBonds = {} -- Track processed bonds to avoid reactivating
 local speed = 5000
 local bond = true -- Activates bond collection
 
--- Полный массив точек пути (Y = 120)
+-- Full path points array (Y = 120)
 local pathPoints = {
     Vector3.new(13.66, 120, 29620.67),   Vector3.new(-15.98, 120, 28227.97),
     Vector3.new(-63.54, 120, 26911.59),  Vector3.new(-75.71, 120, 25558.11),
@@ -77,10 +77,10 @@ spawn(function()
                 pcall(function()
                     activateObject:FireServer(v) -- Fire the server event for this bond
                 end)
-                task.wait(0.2) -- Slightly increased delay for stability
+                task.wait(0.2)
             end
         end
-        task.wait(0.5) -- Slight delay between iterations
+        task.wait(0.5)
     end
 end)
 
@@ -104,10 +104,9 @@ spawn(function()
 
     scanConn:Disconnect()
 
-    -- Ensure sufficient runtime
-    if tick() - startTime < 25 then
-        task.wait(25 - (tick() - startTime))
-    end
+    -- Extend runtime for bond collection
+    local extendedCollectionTime = 35 -- Increased time for bond collection
+    task.wait(extendedCollectionTime)
 
     -- External script execution
     pcall(function()
@@ -115,14 +114,13 @@ spawn(function()
     end)
     task.wait(2)
 
-    -- Collect bonds
-    local collectStart = tick()
-    while tick() - collectStart < 21 do
+    -- Continuous bond collection
+    while bond do -- Continues collection as long as 'bond' is true
         for _, pos in ipairs(foundBonds) do
             pcall(function()
                 hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
             end)
-            task.wait(0.5) -- Slightly decreased delay for faster collection
+            task.wait(0.5) -- Adjusted for stable collection
         end
     end
 
