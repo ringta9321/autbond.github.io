@@ -70,10 +70,8 @@ end
 spawn(function()
     while true do
         if bond then
-            local activateObject = game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
-            local runtimeItems = game:GetService("Workspace"):WaitForChild("RuntimeItems")
-
-            for _, v in pairs(runtimeItems:GetChildren()) do
+            local activateObject = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
+            for _, v in pairs(runtime:GetChildren()) do
                 if v.Name == "Bond" or v.Name == "Bonds" then
                     pcall(function()
                         activateObject:FireServer(v) -- Fire the server event for this bond
@@ -89,6 +87,7 @@ end)
 -- Movement and bond scanning along the path
 spawn(function()
     foundBonds = {}
+    local startTime = tick()
     local scanConn = RunService.Heartbeat:Connect(scanForBonds)
 
     -- Traverse through path points
@@ -105,11 +104,41 @@ spawn(function()
 
     scanConn:Disconnect()
 
-    -- Collect Bonds
-    for _, pos in ipairs(foundBonds) do
-        pcall(function()
-            hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
-        end)
-        task.wait(0.5)
+    -- Минимальное время выполнения
+    if tick() - startTime < 90 then
+        task.wait(90 - (tick() - startTime))
     end
+
+    -- Внешний скрипт
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/castletpfast.github.io/main/FASTCASTLE.lua"))()
+    end)
+    task.wait(5)
+
+    -- Сбор бондов
+    local collectStart = tick()
+    while tick() - collectStart < 60 do
+        for _, pos in ipairs(foundBonds) do
+            pcall(function()
+                hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
+            end)
+            task.wait(0.5)
+        end
+    end
+
+    -- Надежный ресет
+    local function safeReset()
+        pcall(function()
+            player:RequestStreamAroundAsync(hrp.Position)
+            if player.Character then
+                player.Character:BreakJoints()
+                task.wait(0.2)
+                player:LoadCharacter()
+            end
+        end)
+    end
+
+    safeReset()
+    task.wait(1)
+    safeReset()
 end)
