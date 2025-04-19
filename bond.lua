@@ -2,6 +2,7 @@
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
@@ -10,6 +11,7 @@ local runtime = workspace:WaitForChild("RuntimeItems")
 
 local foundBonds = {}
 local speed = 1000
+local bond = true -- Activates bond collection
 
 -- Полный массив точек пути (Y = 120)
 local pathPoints = {
@@ -45,9 +47,10 @@ local pathPoints = {
     Vector3.new(-452.39, 120, -49407.44)
 }
 
+-- Scanning for Bonds and updating the foundBonds list
 local function scanForBonds()
     for _, m in ipairs(runtime:GetChildren()) do
-        if m:IsA("Model") and m.Name == "Bond" and m.PrimaryPart then
+        if m:IsA("Model") and (m.Name == "Bond" or m.Name == "Bonds") and m.PrimaryPart then
             local p = m.PrimaryPart.Position
             local exists = false
             for _, v in ipairs(foundBonds) do
@@ -63,12 +66,27 @@ local function scanForBonds()
     end
 end
 
+-- Bond activation and collection
+spawn(function()
+    while true do
+        if bond then
+            local activateObject = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
+            for _, v in pairs(runtime:GetChildren()) do
+                if v.Name == "Bond" or v.Name == "Bonds" then
+                    activateObject:FireServer(v)
+                end
+            end
+        end
+        task.wait()
+    end
+end)
+
+-- Movement and bond scanning along the path
 spawn(function()
     foundBonds = {}
-    local startTime = tick()
     local scanConn = RunService.Heartbeat:Connect(scanForBonds)
 
-    -- Маршрутное движение
+    -- Traverse through path points
     for _, pt in ipairs(pathPoints) do
         local dist = (hrp.Position - pt).Magnitude
         local tween = TweenService:Create(
@@ -82,41 +100,11 @@ spawn(function()
 
     scanConn:Disconnect()
 
-    -- Минимальное время выполнения
-    if tick() - startTime < 90 then
-        task.wait(90 - (tick() - startTime))
-    end
-
-    -- Внешний скрипт
-    pcall(function()
-      loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/castletpfast.github.io/main/FASTCASTLE.lua"))()
-    end)
-    task.wait(5)
-
-    -- Сбор бондов
-    local collectStart = tick()
-    while tick() - collectStart < 60 do
-        for _, pos in ipairs(foundBonds) do
-            pcall(function()
-                hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
-            end)
-            task.wait(0.5)
-        end
-    end
-
-    -- Надежный ресет
-    local function safeReset()
+    -- Collect Bonds
+    for _, pos in ipairs(foundBonds) do
         pcall(function()
-            player:RequestStreamAroundAsync(hrp.Position)
-            if player.Character then
-                player.Character:BreakJoints()
-                task.wait(0.2)
-                player:LoadCharacter()
-            end
+            hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
         end)
+        task.wait(0.5)
     end
-
-    safeReset()
-    task.wait(1)
-    safeReset()
 end)
