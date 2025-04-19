@@ -66,18 +66,23 @@ local function scanForBonds()
     end
 end
 
--- Bond activation and collection
+-- Bond activation and collection with a delay
 spawn(function()
     while true do
         if bond then
-            local activateObject = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
-            for _, v in pairs(runtime:GetChildren()) do
+            local activateObject = game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
+            local runtimeItems = game:GetService("Workspace"):WaitForChild("RuntimeItems")
+
+            for _, v in pairs(runtimeItems:GetChildren()) do
                 if v.Name == "Bond" or v.Name == "Bonds" then
-                    activateObject:FireServer(v)
+                    pcall(function()
+                        activateObject:FireServer(v) -- Fire the server event for this bond
+                    end)
+                    task.wait(0.1) -- Add a 0.1-second delay between each Remote Event call
                 end
             end
         end
-        task.wait()
+        task.wait(0.1) -- Add a delay between loops as well
     end
 end)
 
