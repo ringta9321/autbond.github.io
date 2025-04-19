@@ -10,6 +10,7 @@ local hrp = char:WaitForChild("HumanoidRootPart")
 local runtime = workspace:WaitForChild("RuntimeItems")
 
 local foundBonds = {}
+local processedBonds = {} -- Track processed bonds to avoid reactivating
 local speed = 5000
 local bond = true -- Activates bond collection
 
@@ -60,27 +61,26 @@ local function scanForBonds()
                 end
             end
             if not exists then 
-                table.insert(foundBonds, p) 
+                table.insert(foundBonds, p)
             end
         end
     end
 end
 
--- Bond activation and collection with a delay
+-- Bond activation and collection with optimizations
 spawn(function()
-    while true do
-        if bond then
-            local activateObject = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
-            for _, v in pairs(runtime:GetChildren()) do
-                if v.Name == "Bond" or v.Name == "Bonds" then
-                    pcall(function()
-                        activateObject:FireServer(v) -- Fire the server event for this bond
-                    end)
-                    task.wait(0.1) -- Add a 0.1-second delay between each Remote Event call
-                end
+    while bond do
+        local activateObject = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
+        for _, v in ipairs(runtime:GetChildren()) do
+            if v.Name == "Bond" or v.Name == "Bonds" and not processedBonds[v] then
+                processedBonds[v] = true -- Mark as processed
+                pcall(function()
+                    activateObject:FireServer(v) -- Fire the server event for this bond
+                end)
+                task.wait(0.2) -- Slightly increased delay for stability
             end
         end
-        task.wait(0.1) -- Add a delay between loops as well
+        task.wait(0.5) -- Slight delay between iterations
     end
 end)
 
@@ -104,29 +104,29 @@ spawn(function()
 
     scanConn:Disconnect()
 
-    -- Минимальное время выполнения
+    -- Ensure sufficient runtime
     if tick() - startTime < 25 then
         task.wait(25 - (tick() - startTime))
     end
 
-    -- Внешний скрипт
+    -- External script execution
     pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/castletpfast.github.io/main/FASTCASTLE.lua"))()
     end)
     task.wait(2)
 
-    -- Сбор бондов
+    -- Collect bonds
     local collectStart = tick()
     while tick() - collectStart < 25 do
         for _, pos in ipairs(foundBonds) do
             pcall(function()
                 hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
             end)
-            task.wait(0.5)
+            task.wait(0.3) -- Slightly decreased delay for faster collection
         end
     end
 
-    -- Надежный ресет
+    -- Safe reset
     local function safeReset()
         pcall(function()
             player:RequestStreamAroundAsync(hrp.Position)
