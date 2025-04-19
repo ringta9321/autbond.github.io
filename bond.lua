@@ -105,8 +105,8 @@ spawn(function()
     scanConn:Disconnect()
 
     -- Минимальное время выполнения
-    if tick() - startTime < 60 then
-        task.wait(60 - (tick() - startTime))
+    if tick() - startTime < 35 then
+        task.wait(35 - (tick() - startTime))
     end
 
     -- Внешний скрипт
