@@ -117,12 +117,12 @@ spawn(function()
 
     -- Collect bonds
     local collectStart = tick()
-    while tick() - collectStart < 25 do
+    while tick() - collectStart < 21 do
         for _, pos in ipairs(foundBonds) do
             pcall(function()
                 hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
             end)
-            task.wait(0.3) -- Slightly decreased delay for faster collection
+            task.wait(0.5) -- Slightly decreased delay for faster collection
         end
     end
 
