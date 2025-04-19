@@ -76,11 +76,11 @@ spawn(function()
                     pcall(function()
                         activateObject:FireServer(v) -- Fire the server event for this bond
                     end)
-                    task.wait(0.2) -- Add a 0.1-second delay between each Remote Event call
+                    task.wait(0.1) -- Add a 0.1-second delay between each Remote Event call
                 end
             end
         end
-        task.wait(0.2) -- Add a delay between loops as well
+        task.wait(0.1) -- Add a delay between loops as well
     end
 end)
 
@@ -105,8 +105,8 @@ spawn(function()
     scanConn:Disconnect()
 
     -- Минимальное время выполнения
-    if tick() - startTime < 35 then
-        task.wait(35 - (tick() - startTime))
+    if tick() - startTime < 60 then
+        task.wait(60 - (tick() - startTime))
     end
 
     -- Внешний скрипт
