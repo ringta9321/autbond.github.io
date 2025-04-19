@@ -10,11 +10,10 @@ local hrp = char:WaitForChild("HumanoidRootPart")
 local runtime = workspace:WaitForChild("RuntimeItems")
 
 local foundBonds = {}
-local processedBonds = {} -- Track processed bonds to avoid reactivating
-local speed = 5000
+local speed = 3000
 local bond = true -- Activates bond collection
 
--- Full path points array (Y = 120)
+-- Полный массив точек пути (Y = 120)
 local pathPoints = {
     Vector3.new(13.66, 120, 29620.67),   Vector3.new(-15.98, 120, 28227.97),
     Vector3.new(-63.54, 120, 26911.59),  Vector3.new(-75.71, 120, 25558.11),
@@ -55,32 +54,33 @@ local function scanForBonds()
             local p = m.PrimaryPart.Position
             local exists = false
             for _, v in ipairs(foundBonds) do
-                if (v - p).Magnitude < 1 then 
-                    exists = true 
-                    break 
+                if (v - p).Magnitude < 1 then
+                    exists = true
+                    break
                 end
             end
-            if not exists then 
+            if not exists then
                 table.insert(foundBonds, p)
             end
         end
     end
 end
 
--- Bond activation and collection with optimizations
+-- Bond activation and collection with a delay
 spawn(function()
-    while bond do
-        local activateObject = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
-        for _, v in ipairs(runtime:GetChildren()) do
-            if v.Name == "Bond" or v.Name == "Bonds" and not processedBonds[v] then
-                processedBonds[v] = true -- Mark as processed
-                pcall(function()
-                    activateObject:FireServer(v) -- Fire the server event for this bond
-                end)
-                task.wait(0.2)
+    while true do
+        if bond then
+            local activateObject = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("RemotePromise"):WaitForChild("Remotes"):WaitForChild("C_ActivateObject")
+            for _, v in pairs(runtime:GetChildren()) do
+                if v.Name == "Bond" or v.Name == "Bonds" then
+                    pcall(function()
+                        activateObject:FireServer(v) -- Fire the server event for this bond
+                    end)
+                    task.wait(0.1) -- Add a 0.1-second delay between each Remote Event call
+                end
             end
         end
-        task.wait(0.5)
+        task.wait(0.1) -- Add a delay between loops as well
     end
 end)
 
@@ -104,27 +104,29 @@ spawn(function()
 
     scanConn:Disconnect()
 
-    -- Extend runtime for bond collection
-    local extendedCollectionTime = 35 -- Increased time for bond collection
-    task.wait(extendedCollectionTime)
+    -- Минимальное время выполнения
+    if tick() - startTime < 60 then
+        task.wait(60 - (tick() - startTime))
+    end
 
-    -- External script execution
+    -- Внешний скрипт
     pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/castletpfast.github.io/main/FASTCASTLE.lua"))()
     end)
     task.wait(2)
 
-    -- Continuous bond collection
-    while bond do -- Continues collection as long as 'bond' is true
+    -- Сбор бондов
+    local collectStart = tick()
+    while tick() - collectStart < 60 do
         for _, pos in ipairs(foundBonds) do
             pcall(function()
                 hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
             end)
-            task.wait(0.5) -- Adjusted for stable collection
+            task.wait(0.5)
         end
     end
 
-    -- Safe reset
+    -- Надежный ресет
     local function safeReset()
         pcall(function()
             player:RequestStreamAroundAsync(hrp.Position)
