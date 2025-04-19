@@ -10,7 +10,7 @@ local hrp = char:WaitForChild("HumanoidRootPart")
 local runtime = workspace:WaitForChild("RuntimeItems")
 
 local foundBonds = {}
-local speed = 1000
+local speed = 3000
 local bond = true -- Activates bond collection
 
 -- Полный массив точек пути (Y = 120)
