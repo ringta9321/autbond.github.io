@@ -76,11 +76,11 @@ spawn(function()
                     pcall(function()
                         activateObject:FireServer(v) -- Fire the server event for this bond
                     end)
-                    task.wait(0.1) -- Add a 0.1-second delay between each Remote Event call
+                    task.wait(0.2) -- Add a 0.1-second delay between each Remote Event call
                 end
             end
         end
-        task.wait(0.1) -- Add a delay between loops as well
+        task.wait(0.2) -- Add a delay between loops as well
     end
 end)
 
