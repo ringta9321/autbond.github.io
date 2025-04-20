@@ -8,6 +8,7 @@ local player = Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
 local runtime = workspace:WaitForChild("RuntimeItems")
+local camera = workspace.CurrentCamera
 
 local foundBonds = {}
 local speed = 6000
@@ -142,3 +143,15 @@ spawn(function()
     task.wait(1)
     safeReset()
 end)
+
+-- Camera spinning logic
+local angle = 0 -- Starting angle for rotation
+local spinSpeed = 2 -- Speed of camera spin (adjustable)
+
+RunService.RenderStepped:Connect(function()
+    -- Horizontal spinning (left to right)
+    angle = angle + spinSpeed * math.pi / 180
+    camera.CFrame = CFrame.new(camera.CFrame.Position) * CFrame.Angles(0, angle, 0)
+
+    -- Vertical oscillation (up and down)
+    local tilt = math.sin(tick()) * 0.
