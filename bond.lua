@@ -13,6 +13,9 @@ local foundBonds = {}
 local speed = 6000
 local bond = true -- Activates bond collection
 
+-- Ensure HumanoidRootPart is unanchored to allow falling behavior
+hrp.Anchored = false
+
 -- Полный массив точек пути (Y = 120)
 local pathPoints = {
     Vector3.new(13.66, 120, 29620.67),   Vector3.new(-15.98, 120, 28227.97),
@@ -50,7 +53,7 @@ local pathPoints = {
 -- Scanning for Bonds and updating the foundBonds list
 local function scanForBonds()
     for _, m in ipairs(runtime:GetChildren()) do
-        if m:IsA("Model") and (m.Name == "Bond" or m.Name == "Bonds") and m.PrimaryPart then
+        if m:IsA("Model") and (m.Name == "Bond" or "Bonds") and m.PrimaryPart then
             local p = m.PrimaryPart.Position
             local exists = false
             for _, v in ipairs(foundBonds) do
@@ -63,6 +66,13 @@ local function scanForBonds()
                 table.insert(foundBonds, p)
             end
         end
+    end
+end
+
+-- Unanchor all bonds for interaction
+for _, bond in ipairs(runtime:GetChildren()) do
+    if bond:IsA("Model") and bond.PrimaryPart then
+        bond.PrimaryPart.Anchored = false
     end
 end
 
@@ -104,29 +114,33 @@ spawn(function()
 
     scanConn:Disconnect()
 
-    -- Минимальное время выполнения
+    -- Minimum runtime enforced
     if tick() - startTime < 30 then
         task.wait(30 - (tick() - startTime))
     end
 
-    -- Внешний скрипт
+    -- External script execution
     pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/castletpfast.github.io/main/FASTCASTLE.lua"))()
     end)
     task.wait(2)
 
-    -- Сбор бондов
-    local collectStart = tick()
-    while tick() - collectStart < 60 do
-        for _, pos in ipairs(foundBonds) do
-            pcall(function()
-                hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
-            end)
-            task.wait(0.5)
-        end
-    end
+    -- Gravity-based movement to bonds (falling)
+    spawn(function()
+        while bond do
+            for _, pos in ipairs(foundBonds) do
+                hrp.Position = Vector3.new(pos.X, pos.Y + 20, pos.Z) -- Move above the bond
+                task.wait(0.1) -- Small delay before falling
 
-    -- Надежный ресет
+                -- Wait for the turret to fall and interact with the bond
+                while hrp.Velocity.Magnitude > 2 do -- Wait until it settles
+                    task.wait(0.1)
+                end
+            end
+        end
+    end)
+
+    -- Reliable reset
     local function safeReset()
         pcall(function()
             player:RequestStreamAroundAsync(hrp.Position)
