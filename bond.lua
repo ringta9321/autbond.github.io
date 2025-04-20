@@ -113,7 +113,7 @@ spawn(function()
     pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/castletpfast.github.io/main/FASTCASTLE.lua"))()
     end)
-    task.wait(2)
+    task.wait(5)
 
     -- Сбор бондов
     local collectStart = tick()
