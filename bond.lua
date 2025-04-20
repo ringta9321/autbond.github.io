@@ -12,6 +12,7 @@ local runtime = workspace:WaitForChild("RuntimeItems")
 local foundBonds = {}
 local speed = 6000
 local bond = true -- Activates bond collection
+local allBondsCollected = false -- Tracks completion of bond collection
 
 -- Ensure HumanoidRootPart is unanchored to allow falling behavior
 hrp.Anchored = false
@@ -129,30 +130,22 @@ spawn(function()
     spawn(function()
         while bond do
             for _, pos in ipairs(foundBonds) do
+                print("Moving to bond position:", pos) -- Debugging message
                 hrp.Position = Vector3.new(pos.X, pos.Y + 20, pos.Z) -- Move above the bond
                 task.wait(0.1) -- Small delay before falling
 
                 -- Wait for the turret to fall and interact with the bond
-                while hrp.Velocity.Magnitude > 2 do -- Wait until it settles
-                    task.wait(0.1)
+                local timeout = 3 -- Max 3 seconds for falling
+                local fallStart = tick()
+                while hrp.Velocity.Magnitude > 2 and tick() - fallStart < timeout do
+                    task.wait(0.1) -- Wait until falling completes or timeout
                 end
             end
+
+            -- Mark all bonds as collected after finishing the loop
+            allBondsCollected = true
         end
     end)
 
-    -- Reliable reset
-    local function safeReset()
-        pcall(function()
-            player:RequestStreamAroundAsync(hrp.Position)
-            if player.Character then
-                player.Character:BreakJoints()
-                task.wait(0.2)
-                player:LoadCharacter()
-            end
-        end)
-    end
-
-    safeReset()
-    task.wait(1)
-    safeReset()
-end)
+    -- Delay reset until bonds are collected
+    while not allBondsCollected do
