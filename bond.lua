@@ -10,7 +10,7 @@ local hrp = char:WaitForChild("HumanoidRootPart")
 local runtime = workspace:WaitForChild("RuntimeItems")
 
 local foundBonds = {}
-local speed = 3000
+local speed = 6000
 local bond = true -- Activates bond collection
 
 -- Полный массив точек пути (Y = 120)
@@ -105,8 +105,8 @@ spawn(function()
     scanConn:Disconnect()
 
     -- Минимальное время выполнения
-    if tick() - startTime < 60 then
-        task.wait(60 - (tick() - startTime))
+    if tick() - startTime < 30 then
+        task.wait(30 - (tick() - startTime))
     end
 
     -- Внешний скрипт
@@ -117,7 +117,7 @@ spawn(function()
 
     -- Сбор бондов
     local collectStart = tick()
-    while tick() - collectStart < 60 do
+    while tick() - collectStart < 30 do
         for _, pos in ipairs(foundBonds) do
             pcall(function()
                 hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
