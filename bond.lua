@@ -13,15 +13,16 @@ local foundBonds = {}
 local speed = 6000
 local bond = true
 
--- Enhanced camera spinning and oscillation logic
+-- Camera spinning left-right and up-down logic
+local angle = 0
 local spinSpeed = 6
 local verticalSpeed = 2
 local verticalAmplitude = 3
 
 RunService.RenderStepped:Connect(function()
-    local angle = tick() * spinSpeed
-    local verticalOffset = math.sin(tick() * verticalSpeed) * verticalAmplitude
-    camera.CFrame = CFrame.new(camera.CFrame.Position) * CFrame.Angles(0, math.rad(angle), 0) * CFrame.new(0, verticalOffset, 0)
+    angle = angle + spinSpeed * math.pi / 180 -- Horizontal spinning
+    local verticalOffset = math.sin(tick() * verticalSpeed) * verticalAmplitude -- Up-down motion
+    camera.CFrame = CFrame.new(camera.CFrame.Position) * CFrame.Angles(0, angle, 0) * CFrame.new(0, verticalOffset, 0)
 end)
 
 local pathPoints = {
